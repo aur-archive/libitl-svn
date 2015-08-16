@@ -1,0 +1,42 @@
+# Contributor: Sohaib Afifi <me@sohaibafifi.com>
+
+pkgname=libitl-svn
+pkgver=0.7.1
+pkgrel=3
+pkgdesc="The Islamic tools library for prayer times and Hijri calculations"
+url="http://www.arabeyes.org/"
+arch=('i686' 'x86_64')
+license=('LGPL')
+depends=('glibc')
+conflicts=('libitl')
+provides=('libitl')
+source=()
+md5sums=()
+options=(!libtool)
+_svntrunk="https://svn.arabeyes.org/svn/projects/itl/libs"
+
+
+build() {
+  cd $srcdir/
+  msg "Connecting to the $_svnmod SVN server..."
+  if [ -d "$_svnmod/.svn" ]; then
+    cd itl && svn up -r $pkgver
+    msg2 "Local files updated"
+  else
+    svn co $_svntrunk --config-dir ./ itl
+    msg2 "SVN checkout done"
+  fi
+  cd itl
+  LDFLAGS=""
+  CFLAGS="-fPIC ${CFLAGS}"
+  CXXFLAGS="${CFLAGS}"  
+  msg "Starting make..."
+  ./autogen.sh 
+  ./configure --prefix=/usr --sysconfdir=/etc
+  make || return 1
+}
+
+package() {
+  cd $srcdir/itl
+  make DESTDIR="$pkgdir" install
+}
